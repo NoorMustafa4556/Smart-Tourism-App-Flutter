@@ -3,7 +3,6 @@
 **Smart Tourism** is a high-end, cross-platform travel solution built with **Flutter** and **Firebase**. Designed with a "Lavish" aesthetic, it provides a VIP experience for travelers and a robust management system for admins.
 
 ---
-
 ## 🌟 Key Pillars of the Project
 
 ### 📱 1. Premium VIP Flutter App
