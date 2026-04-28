@@ -45,13 +45,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               _nameController.text,
                             );
                             if (error == null) {
-                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ProfileSetupScreen()));
+                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ProfileSetupScreen(isEditMode: false)));
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
                             }
                           },
                           style: ElevatedButton.styleFrom(minimumSize: Size(double.infinity, 60), backgroundColor: Color(0xFF004E92), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-                          child: Text("CREATE VIP ACCOUNT", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
+                          child: Text("CREATE ACCOUNT", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
                         ),
                   SizedBox(height: 25),
                   TextButton(
@@ -80,7 +80,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         children: [
           Icon(Icons.person_add_outlined, size: 60, color: Colors.amber.shade400),
           SizedBox(height: 15),
-          Text("JOIN THE VIPs", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 2)),
+          Text("JOIN US", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 2)),
           Text("Begin your luxury journey today", style: GoogleFonts.poppins(color: Colors.white60, fontSize: 13)),
         ],
       ),

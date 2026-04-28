@@ -40,7 +40,7 @@ class WelcomeScreen extends StatelessWidget {
               ),
               SizedBox(height: 15),
               Text(
-                "Experience luxury tourism like never before with our VIP services.",
+                "Experience luxury tourism like never before with our premium services.",
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(fontSize: 14, color: Colors.white60),
               ),
@@ -66,7 +66,7 @@ class WelcomeScreen extends StatelessWidget {
                 },
                 child: RichText(
                   text: TextSpan(
-                    text: "Already a VIP member? ",
+                    text: "Already a member? ",
                     style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
                     children: [
                       TextSpan(text: "Login", style: TextStyle(color: Colors.amber.shade400, fontWeight: FontWeight.bold)),

@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             String? error = await authProvider.login(_emailController.text, _passwordController.text);
                             if (error == null) {
                               if (authProvider.userModel!.phone.isEmpty) {
-                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ProfileSetupScreen()));
+                                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ProfileSetupScreen(isEditMode: false)));
                               } else {
                                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
                               }
@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             }
                           },
                           style: ElevatedButton.styleFrom(minimumSize: Size(double.infinity, 60), backgroundColor: Color(0xFF004E92), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-                          child: Text("LOGIN AS VIP", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
+                          child: Text("LOGIN", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 16)),
                         ),
                   SizedBox(height: 25),
                   TextButton(
@@ -90,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           Icon(Icons.travel_explore, size: 80, color: Colors.amber.shade400),
           SizedBox(height: 20),
-          Text("VIP LOGIN", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 2)),
+          Text("LOGIN", style: GoogleFonts.montserrat(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 2)),
           Text("Welcome back, Explorer", style: GoogleFonts.poppins(color: Colors.white60, fontSize: 14)),
         ],
       ),

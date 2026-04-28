@@ -27,9 +27,11 @@ class AuthProvider with ChangeNotifier {
         _firestore.collection('users').doc(user.uid).snapshots().listen((doc) {
           if (doc.exists) {
             _userModel = UserModel.fromMap(doc.data() as Map<String, dynamic>);
-            _isInitialised = true;
-            notifyListeners();
+          } else {
+            _userModel = null; // No user data found
           }
+          _isInitialised = true;
+          notifyListeners();
         });
       } else {
         _userModel = null;

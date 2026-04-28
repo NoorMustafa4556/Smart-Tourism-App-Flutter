@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Models/PlaceModel.dart';
-import 'BookingFormScreen.dart';
+import 'BookingDetailsFormScreen.dart';
 
 class PlaceDetailsScreen extends StatefulWidget {
   final PlaceModel place;
@@ -23,7 +23,14 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(widget.place.name),
-              background: Image.network(widget.place.image, fit: BoxFit.cover),
+              background: Image.network(
+                DatabaseService.getCORSProxyUrl(widget.place.image), 
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: Colors.blue.shade900,
+                  child: Center(child: Icon(Icons.image_not_supported, color: Colors.white, size: 50)),
+                ),
+              ),
             ),
           ),
           SliverToBoxAdapter(
@@ -35,26 +42,14 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                   Text("Description", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   SizedBox(height: 10),
                   Text(widget.place.description),
-                  SizedBox(height: 30),
-                  Text("Select Category", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 15),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _categoryButton("Individual"),
-                      _categoryButton("Family"),
-                      _categoryButton("Friends"),
-                    ],
-                  ),
                   SizedBox(height: 50),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => BookingFormScreen(
+                          builder: (context) => BookingDetailsFormScreen(
                             place: widget.place,
-                            category: selectedCategory,
                           ),
                         ),
                       );
@@ -76,22 +71,4 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
     );
   }
 
-  Widget _categoryButton(String title) {
-    bool isSelected = selectedCategory == title;
-    return GestureDetector(
-      onTap: () => setState(() => selectedCategory = title),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? Colors.blue : Colors.grey.shade400),
-        ),
-        child: Text(
-          title,
-          style: TextStyle(color: isSelected ? Colors.white : Colors.black),
-        ),
-      ),
-    );
-  }
 }

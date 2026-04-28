@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     
     if (authProvider.userModel != null) {
       if (authProvider.userModel!.phone.isEmpty) {
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ProfileSetupScreen()));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ProfileSetupScreen(isEditMode: false)));
       } else {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen()));
       }

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
@@ -10,6 +11,9 @@ import '../Services/DatabaseService.dart';
 import 'HomeScreen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
+  final bool isEditMode;
+  const ProfileSetupScreen({Key? key, this.isEditMode = true}) : super(key: key);
+
   @override
   _ProfileSetupScreenState createState() => _ProfileSetupScreenState();
 }
@@ -21,7 +25,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   
   String _completePhoneNumber = '';
-  File? _image;
+  XFile? _image;
   bool _isLoading = false;
   bool _isPickerActive = false;
   bool _isObscure = true;
@@ -35,7 +39,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         setState(() {
           _nameController.text = user.name;
           _emailController.text = user.email;
-          _phoneController.text = user.phone.replaceFirst(RegExp(r'^\+\d{1,3}'), '');
           _completePhoneNumber = user.phone;
         });
       }
@@ -47,15 +50,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     setState(() => _isPickerActive = true);
     try {
       final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 50);
-      if (pickedFile != null) setState(() => _image = File(pickedFile.path));
+      if (pickedFile != null) {
+        setState(() {
+          _image = pickedFile;
+        });
+      }
     } finally {
       setState(() => _isPickerActive = false);
     }
   }
 
   void _saveProfile() async {
-    if (_nameController.text.isEmpty || _completePhoneNumber.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please fill all fields")));
+    if (_nameController.text.isEmpty || _completePhoneNumber.isEmpty || (widget.isEditMode && _passwordController.text.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please fill all required fields")));
       return;
     }
 
@@ -67,13 +74,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
       if (user == null || user.email == null) throw "No user logged in!";
 
-      // 1. Verify Password with the active user's email
-      AuthCredential credential = EmailAuthProvider.credential(
-        email: user.email!, 
-        password: _passwordController.text.trim()
-      );
-      
-      await user.reauthenticateWithCredential(credential);
+      if (widget.isEditMode) {
+        // 1. Verify Password with the active user's email
+        AuthCredential credential = EmailAuthProvider.credential(
+          email: user.email!, 
+          password: _passwordController.text.trim()
+        );
+        
+        await user.reauthenticateWithCredential(credential);
+      }
 
       // 2. Handle Image Upload
       String profilePicUrl = authProvider.userModel?.profilePic ?? '';
@@ -98,22 +107,23 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<AuthProvider>(context).userModel;
     return Scaffold(
-      backgroundColor: Color(0xFFF8F9FA),
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(70),
-        child: Container(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(colors: [Color(0xFF000428), Color(0xFF004E92)]),
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
           ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: Text("EDIT PROFILE", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1)),
-            centerTitle: true,
-            iconTheme: IconThemeData(color: Colors.white),
-          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(widget.isEditMode ? "EDIT PROFILE" : "SETUP PROFILE", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1)),
+        centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
       ),
       body: SingleChildScrollView(
@@ -129,8 +139,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     child: CircleAvatar(
                       radius: 60,
                       backgroundColor: Colors.grey.shade200,
-                      backgroundImage: _image != null ? FileImage(_image!) : (Provider.of<AuthProvider>(context).userModel?.profilePic.isNotEmpty ?? false) ? NetworkImage(Provider.of<AuthProvider>(context).userModel!.profilePic) : null,
-                      child: _image == null && (Provider.of<AuthProvider>(context).userModel?.profilePic.isEmpty ?? true) ? Icon(Icons.person, size: 60, color: Colors.grey) : null,
+                      backgroundImage: _image != null 
+                          ? (kIsWeb ? NetworkImage(_image!.path) as ImageProvider : FileImage(File(_image!.path)))
+                          : (user?.profilePic != null && user!.profilePic.isNotEmpty 
+                              ? NetworkImage(user.profilePic) 
+                              : null),
+                      child: _image == null && (user?.profilePic.isEmpty ?? true) ? Icon(Icons.person, size: 60, color: Colors.grey) : null,
                     ),
                   ),
                   Positioned(bottom: 0, right: 0, child: CircleAvatar(backgroundColor: Colors.blue.shade900, radius: 18, child: Icon(Icons.camera_alt, color: Colors.white, size: 18))),
@@ -170,15 +184,17 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           _buildTextField(_emailController, "Email Address", Icons.email_outlined, readOnly: true),
           SizedBox(height: 15),
           IntlPhoneField(
-            controller: _phoneController,
+            initialValue: Provider.of<AuthProvider>(context, listen: false).userModel?.phone != '' ? Provider.of<AuthProvider>(context, listen: false).userModel?.phone : null,
             decoration: InputDecoration(labelText: 'Phone Number', border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade200)), filled: true, fillColor: Colors.grey.shade50),
             initialCountryCode: 'PK',
             onChanged: (phone) => setState(() => _completePhoneNumber = phone.completeNumber),
           ),
-          Divider(height: 40),
-          Text("Confirm Identity", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.redAccent)),
-          SizedBox(height: 10),
-          _buildTextField(_passwordController, "Login Password", Icons.lock_outline, isPassword: true),
+          if (widget.isEditMode) ...[
+            Divider(height: 40),
+            Text("Confirm Identity", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.redAccent)),
+            SizedBox(height: 10),
+            _buildTextField(_passwordController, "Login Password", Icons.lock_outline, isPassword: true),
+          ],
         ],
       ),
     );

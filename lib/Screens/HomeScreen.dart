@@ -18,10 +18,9 @@ class HomeScreen extends StatelessWidget {
     final user = authProvider.userModel;
 
     return Scaffold(
-      backgroundColor: Color(0xFFF8F9FA),
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(80),
-        child: Container(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [Color(0xFF000428), Color(0xFF004E92)],
@@ -31,16 +30,17 @@ class HomeScreen extends StatelessWidget {
             borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
             boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 4))],
           ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: Text("VIP TRAVELS", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
-            centerTitle: true,
-            iconTheme: IconThemeData(color: Colors.white),
-          ),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text("SMART TOURISM", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 2)),
+        centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.white),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
       ),
-      drawer: _buildVIPDrawer(context, user, authProvider),
+      drawer: _buildDrawer(context, user, authProvider),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -51,25 +51,27 @@ class HomeScreen extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 25,
+                  backgroundColor: Colors.grey.shade200,
                   backgroundImage: user?.profilePic != null && user!.profilePic.isNotEmpty ? NetworkImage(user.profilePic) : null,
-                  child: user?.profilePic == null || user!.profilePic.isEmpty ? Icon(Icons.person) : null,
+                  child: user?.profilePic == null || user!.profilePic.isEmpty ? Icon(Icons.person, color: Colors.grey) : null,
                 ),
                 SizedBox(width: 15),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Hello,", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 14)),
+                    Text("Need a Vacation?", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 14)),
                     Text(user?.name ?? 'Traveler', style: GoogleFonts.poppins(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ],
             ),
           ),
-          SizedBox(height: 25),
+          SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text("Popular Destinations", style: GoogleFonts.poppins(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18)),
+            child: Text("Select a destination to explore near you.", style: GoogleFonts.poppins(color: Colors.grey.shade600, fontSize: 13)),
           ),
+          SizedBox(height: 25),
           Expanded(
             child: StreamBuilder<List<PlaceModel>>(
               stream: _db.getPlaces(),
@@ -78,12 +80,18 @@ class HomeScreen extends StatelessWidget {
                 if (!snapshot.hasData || snapshot.data!.isEmpty) return Center(child: Text("No places found.", style: TextStyle(color: Colors.grey)));
 
                 final places = snapshot.data!;
-                return ListView.builder(
-                  padding: EdgeInsets.all(20),
+                return GridView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 15,
+                    mainAxisSpacing: 15,
+                    childAspectRatio: 0.85,
+                  ),
                   itemCount: places.length,
                   itemBuilder: (context, index) {
                     final place = places[index];
-                    return _buildPlaceCard(context, place);
+                    return _buildPlaceGridCard(context, place);
                   },
                 );
               },
@@ -94,58 +102,45 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceCard(BuildContext context, PlaceModel place) {
+  Widget _buildPlaceGridCard(BuildContext context, PlaceModel place) {
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceDetailsScreen(place: place))),
       child: Container(
-        margin: EdgeInsets.only(bottom: 25),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Colors.red.shade50, // Matches the light pink/red background of the blood app
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: Offset(0, 10))],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: Offset(0, 5))],
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                  child: Image.network(place.image, height: 200, width: double.infinity, fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(height: 200, color: Colors.grey.shade200, child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey)),
-                  ),
-                ),
-                Positioned(
-                  bottom: 15, right: 15,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(color: Colors.blue.shade900, borderRadius: BorderRadius.circular(12)),
-                    child: Text("Rs. ${place.price}", style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(place.name, style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
-                        Row(
-                          children: [
-                            Icon(Icons.location_on, size: 14, color: Colors.grey),
-                            SizedBox(width: 4),
-                            Text(place.location, style: GoogleFonts.poppins(color: Colors.grey, fontSize: 12)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.arrow_forward_ios, color: Colors.blue.shade900, size: 16),
-                ],
+            Container(
+              padding: EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
               ),
+              child: ClipOval(
+                child: Image.network(
+                  DatabaseService.getCORSProxyUrl(place.image), 
+                  height: 40, 
+                  width: 40, 
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Icon(Icons.location_city, color: Colors.red.shade700, size: 40),
+                ),
+              ),
+            ),
+            SizedBox(height: 15),
+            Text(
+              place.name,
+              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 5),
+            Text(
+              "Rs. ${place.price.toInt()}",
+              style: GoogleFonts.poppins(fontSize: 12, color: Colors.red.shade700, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -153,7 +148,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVIPDrawer(BuildContext context, user, authProvider) {
+  Widget _buildDrawer(BuildContext context, user, authProvider) {
     return Drawer(
       backgroundColor: Colors.white,
       child: Column(
@@ -164,7 +159,7 @@ class HomeScreen extends StatelessWidget {
               backgroundImage: user?.profilePic != null && user!.profilePic.isNotEmpty ? NetworkImage(user.profilePic) : null,
               child: user?.profilePic == null || user!.profilePic.isEmpty ? Icon(Icons.person, size: 40, color: Colors.blue.shade900) : null,
             ),
-            accountName: Text(user?.name ?? "VIP Traveler", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
+            accountName: Text(user?.name ?? "Traveler", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
             accountEmail: Text(user?.email ?? "", style: TextStyle(color: Colors.white70)),
             decoration: BoxDecoration(
               gradient: LinearGradient(colors: [Color(0xFF000428), Color(0xFF004E92)], begin: Alignment.topLeft, end: Alignment.bottomRight),
@@ -174,7 +169,7 @@ class HomeScreen extends StatelessWidget {
             Navigator.pop(context);
             Navigator.push(context, MaterialPageRoute(builder: (context) => MyBookingsScreen()));
           }),
-          _buildDrawerItem(Icons.person_outline, "VIP Profile", () {
+          _buildDrawerItem(Icons.person_outline, "My Profile", () {
             Navigator.pop(context);
             Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileSetupScreen()));
           }),

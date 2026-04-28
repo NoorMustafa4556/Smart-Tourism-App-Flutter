@@ -1,8 +1,11 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:image_picker/image_picker.dart';
 import '../Models/BookingModel.dart';
 import '../Models/PlaceModel.dart';
+import '../Models/PaymentMethodModel.dart';
 
 class DatabaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -15,14 +18,15 @@ class DatabaseService {
     });
   }
 
-  // Upload Payment Screenshot
-  Future<String> uploadImage(File imageFile, String path) async {
+  // Upload Image (Web & Mobile Compatible)
+  Future<String> uploadImage(XFile imageFile, String path) async {
     try {
       String fileName = "${DateTime.now().millisecondsSinceEpoch}.jpg";
       Reference ref = _storage.ref().child(path).child(fileName);
       
-      // Start upload
-      UploadTask uploadTask = ref.putFile(imageFile);
+      // Start upload using bytes (Works on Web and Mobile)
+      final bytes = await imageFile.readAsBytes();
+      UploadTask uploadTask = ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
       
       // Wait for completion
       TaskSnapshot snapshot = await uploadTask.whenComplete(() => null);
@@ -33,6 +37,21 @@ class DatabaseService {
     } catch (e) {
       throw "Upload failed: $e";
     }
+  }
+
+  // Admin: Create Place
+  Future<void> createPlace(PlaceModel place) async {
+    await _firestore.collection('places').doc(place.id).set(place.toMap());
+  }
+
+  // Admin: Update Place
+  Future<void> updatePlace(PlaceModel place) async {
+    await _firestore.collection('places').doc(place.id).update(place.toMap());
+  }
+
+  // Admin: Delete Place
+  Future<void> deletePlace(String placeId) async {
+    await _firestore.collection('places').doc(placeId).delete();
   }
 
   // Book a Place
@@ -62,8 +81,49 @@ class DatabaseService {
     });
   }
 
-  // Admin: Update Booking Status
-  Future<void> updateBookingStatus(String bookingId, String status) async {
-    await _firestore.collection('bookings').doc(bookingId).update({'status': status});
+  // Admin: Get All Bookings
+  Stream<List<BookingModel>> getAllBookings() {
+    return _firestore
+        .collection('bookings')
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => BookingModel.fromMap(doc.data())).toList();
+    });
+  }
+
+  // Admin: Update Booking Status & Remarks
+  Future<void> updateBookingStatus(String bookingId, String status, String remarks) async {
+    await _firestore.collection('bookings').doc(bookingId).update({
+      'status': status,
+      'adminRemarks': remarks,
+    });
+  }
+
+  // Payment Methods CRUD
+  Stream<List<PaymentMethodModel>> getPaymentMethods() {
+    return _firestore.collection('payment_methods').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => PaymentMethodModel.fromMap(doc.data(), doc.id)).toList();
+    });
+  }
+
+  Future<void> addPaymentMethod(PaymentMethodModel method) async {
+    await _firestore.collection('payment_methods').doc(method.id).set(method.toMap());
+  }
+
+  Future<void> updatePaymentMethod(PaymentMethodModel method) async {
+    await _firestore.collection('payment_methods').doc(method.id).update(method.toMap());
+  }
+
+  Future<void> deletePaymentMethod(String methodId) async {
+    await _firestore.collection('payment_methods').doc(methodId).delete();
+  }
+
+  // Helper to bypass Web CORS for images
+  static String getCORSProxyUrl(String url) {
+    if (kIsWeb && url.startsWith('http')) {
+      return 'https://api.allorigins.win/raw?url=${Uri.encodeComponent(url)}';
+    }
+    return url;
   }
 }

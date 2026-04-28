@@ -80,7 +80,7 @@ class AdminDashboard extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      _db.updateBookingStatus(booking.bookingId, "approved");
+                      _db.updateBookingStatus(booking.bookingId, "approved", "");
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
@@ -88,7 +88,7 @@ class AdminDashboard extends StatelessWidget {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      _db.updateBookingStatus(booking.bookingId, "rejected");
+                      _db.updateBookingStatus(booking.bookingId, "rejected", "");
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
