@@ -106,9 +106,15 @@ class MyBookingsScreen extends StatelessWidget {
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'approved': return Colors.green;
-      case 'rejected': return Colors.red;
-      case 'processed': return Colors.blue;
+      case 'approved': 
+      case 'approve': 
+        return Colors.green;
+      case 'rejected': 
+      case 'reject': 
+        return Colors.red;
+      case 'processed': 
+      case 'process': 
+        return Colors.blue;
       default: return Colors.orange;
     }
   }

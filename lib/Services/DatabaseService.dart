@@ -119,11 +119,22 @@ class DatabaseService {
     await _firestore.collection('payment_methods').doc(methodId).delete();
   }
 
-  // Helper to bypass Web CORS for images
+  // --- Admin Profile ---
+  Stream<Map<String, dynamic>?> getAdminProfile() {
+    return _firestore.collection('admin_settings').doc('profile').snapshots().map((doc) => doc.data());
+  }
+
+  Future<void> updateAdminProfile(String name, String profilePicUrl) async {
+    await _firestore.collection('admin_settings').doc('profile').set({
+      'name': name,
+      'profilePic': profilePicUrl,
+    }, SetOptions(merge: true));
+  }
+
+  // Helper to bypass Web CORS for images since native configuration failed
   static String getCORSProxyUrl(String url) {
     if (kIsWeb && url.startsWith('http')) {
-      // using an image-specific proxy that reliably handles binary data and CORS
-      return 'https://images.weserv.nl/?url=${Uri.encodeComponent(url)}';
+      return 'https://corsproxy.io/?${Uri.encodeComponent(url)}';
     }
     return url;
   }

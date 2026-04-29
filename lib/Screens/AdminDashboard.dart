@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../Models/BookingModel.dart';
 import '../Models/PlaceModel.dart';
 import '../Models/PaymentMethodModel.dart';
 import '../Services/DatabaseService.dart';
+import 'AdminProfileScreen.dart';
 import 'AdminAddPlaceScreen.dart';
 import 'LoginScreen.dart';
 
@@ -29,22 +31,69 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
     return Scaffold(
       backgroundColor: Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: Text("Admin Panel", style: GoogleFonts.montserrat(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text("Admin Panel", style: GoogleFonts.montserrat(fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: Colors.amber.shade900,
         iconTheme: IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(icon: Icon(Icons.logout), onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen()))),
-        ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: Colors.white,
           labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
+          unselectedLabelColor: Colors.white60,
+          indicatorColor: Colors.white,
           tabs: [
             Tab(icon: Icon(Icons.book_online), text: "Bookings"),
             Tab(icon: Icon(Icons.place), text: "Places"),
             Tab(icon: Icon(Icons.payment), text: "Payments"),
           ],
+        ),
+      ),
+      drawer: Drawer(
+        child: StreamBuilder<Map<String, dynamic>?>(
+          stream: _db.getAdminProfile(),
+          builder: (context, snapshot) {
+            String adminName = "Super Admin";
+            String adminEmail = "admin@tourism.com";
+            String profilePic = "";
+
+            if (snapshot.hasData && snapshot.data != null) {
+              adminName = snapshot.data!['name'] ?? "Super Admin";
+              profilePic = snapshot.data!['profilePic'] ?? "";
+            }
+
+            return ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                UserAccountsDrawerHeader(
+                  accountName: Text(adminName, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                  accountEmail: Text(adminEmail, style: GoogleFonts.poppins()),
+                  currentAccountPicture: CircleAvatar(
+                    backgroundColor: Colors.white,
+                    backgroundImage: profilePic.isNotEmpty ? CachedNetworkImageProvider(DatabaseService.getCORSProxyUrl(profilePic)) : null,
+                    child: profilePic.isEmpty ? Icon(Icons.admin_panel_settings, size: 40, color: Colors.amber.shade900) : null,
+                  ),
+                  decoration: BoxDecoration(color: Colors.amber.shade900),
+                ),
+                ListTile(
+                  leading: Icon(Icons.dashboard, color: Colors.amber.shade900),
+                  title: Text("Dashboard", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                  onTap: () => Navigator.pop(context),
+                ),
+                ListTile(
+                  leading: Icon(Icons.person, color: Colors.amber.shade900),
+                  title: Text("Profile Settings", style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                  onTap: () {
+                    Navigator.pop(context); // Close drawer first
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => AdminProfileScreen()));
+                  },
+                ),
+                Divider(),
+                ListTile(
+                  leading: Icon(Icons.logout, color: Colors.red),
+                  title: Text("Logout", style: GoogleFonts.poppins(color: Colors.red, fontWeight: FontWeight.bold)),
+                  onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginScreen())),
+                ),
+              ],
+            );
+          }
         ),
       ),
       body: TabBarView(
@@ -110,16 +159,17 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
                         booking.paymentScreenshot.isNotEmpty
                             ? GestureDetector(
                                 onTap: () => _showImageDialog(booking.paymentScreenshot),
-                                child: Image.network(
-                                  DatabaseService.getCORSProxyUrl(booking.paymentScreenshot), 
+                                child: CachedNetworkImage(
+                                  imageUrl: DatabaseService.getCORSProxyUrl(booking.paymentScreenshot), 
                                   height: 150, 
                                   width: double.infinity, 
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => Container(
+                                  placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                                  errorWidget: (context, url, error) => Container(
                                     height: 150,
                                     width: double.infinity,
                                     color: Colors.grey.shade200,
-                                    child: Center(child: Text("CORS Error: View on Mobile", style: TextStyle(color: Colors.grey))),
+                                    child: Center(child: Text("Error loading image", style: TextStyle(color: Colors.grey))),
                                   ),
                                 ),
                               )
@@ -128,9 +178,9 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildActionButton(booking, "Approve", Colors.green),
-                            _buildActionButton(booking, "Reject", Colors.red),
-                            _buildActionButton(booking, "Process", Colors.blue),
+                            _buildActionButton(booking, "Approved", Colors.green),
+                            _buildActionButton(booking, "Rejected", Colors.red),
+                            _buildActionButton(booking, "Processed", Colors.blue),
                           ],
                         ),
                       ],
@@ -165,7 +215,7 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
               margin: EdgeInsets.only(bottom: 10),
               child: ListTile(
                 leading: place.image.isNotEmpty 
-                    ? CircleAvatar(backgroundImage: NetworkImage(DatabaseService.getCORSProxyUrl(place.image)))
+                    ? CircleAvatar(backgroundImage: CachedNetworkImageProvider(DatabaseService.getCORSProxyUrl(place.image)))
                     : CircleAvatar(child: Icon(Icons.place)),
                 title: Text(place.name, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
                 subtitle: Text("Rs. ${place.price.toInt()} | ${place.location}"),
@@ -235,9 +285,9 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
 
   // --- HELPERS ---
   Color _getStatusColor(String status) {
-    if (status == 'approved') return Colors.green;
-    if (status == 'rejected') return Colors.red;
-    if (status == 'processed') return Colors.blue;
+    if (status == 'approved' || status == 'approve') return Colors.green;
+    if (status == 'rejected' || status == 'reject') return Colors.red;
+    if (status == 'processed' || status == 'process') return Colors.blue;
     return Colors.orange;
   }
 
@@ -247,13 +297,15 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
         mainAxisSize: MainAxisSize.min,
         children: [
           Flexible(
-            child: Image.network(
-              DatabaseService.getCORSProxyUrl(imageUrl), 
+            child: CachedNetworkImage(
+              imageUrl: DatabaseService.getCORSProxyUrl(imageUrl), 
               fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Container(
+              placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+              errorWidget: (context, url, error) => Container(
                 height: 300,
+                width: double.infinity,
                 color: Colors.grey.shade200,
-                child: Center(child: Text("CORS Error: Image blocked on Web.", style: TextStyle(color: Colors.grey))),
+                child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
               ),
             ),
           ),

@@ -5,7 +5,7 @@ import '../Providers/AuthProvider.dart';
 import 'HomeScreen.dart';
 import 'SignUpScreen.dart';
 import 'ProfileSetupScreen.dart';
-import 'AdminLogin.dart';
+import 'AdminDashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -44,7 +44,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? CircularProgressIndicator()
                       : ElevatedButton(
                           onPressed: () async {
-                            String? error = await authProvider.login(_emailController.text, _passwordController.text);
+                            String email = _emailController.text.trim();
+                            String password = _passwordController.text.trim();
+
+                            // 1. Check for Admin Credentials
+                            if (email == "admin@tourism.com" && password == "admin123") {
+                              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AdminDashboard()));
+                              return;
+                            }
+
+                            // 2. Normal User Authentication via Firebase
+                            String? error = await authProvider.login(email, password);
                             if (error == null) {
                               if (authProvider.userModel!.phone.isEmpty) {
                                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => ProfileSetupScreen(isEditMode: false)));
@@ -62,11 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextButton(
                     onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => SignUpScreen())),
                     child: RichText(text: TextSpan(text: "New here? ", style: TextStyle(color: Colors.grey), children: [TextSpan(text: "Create Account", style: TextStyle(color: Colors.blue.shade900, fontWeight: FontWeight.bold))])),
-                  ),
-                  Divider(height: 60),
-                  TextButton(
-                    onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => AdminLogin())),
-                    child: Text("Are you an Admin?", style: TextStyle(color: Colors.amber.shade900, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),

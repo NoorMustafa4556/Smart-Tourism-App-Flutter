@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../Providers/AuthProvider.dart';
 import '../Services/DatabaseService.dart';
 import '../Models/PlaceModel.dart';
@@ -52,7 +53,9 @@ class HomeScreen extends StatelessWidget {
                 CircleAvatar(
                   radius: 25,
                   backgroundColor: Colors.grey.shade200,
-                  backgroundImage: user?.profilePic != null && user!.profilePic.isNotEmpty ? NetworkImage(user.profilePic) : null,
+                  backgroundImage: user?.profilePic != null && user!.profilePic.isNotEmpty 
+                      ? CachedNetworkImageProvider(DatabaseService.getCORSProxyUrl(user.profilePic)) 
+                      : null,
                   child: user?.profilePic == null || user!.profilePic.isEmpty ? Icon(Icons.person, color: Colors.grey) : null,
                 ),
                 SizedBox(width: 15),
@@ -122,12 +125,13 @@ class HomeScreen extends StatelessWidget {
                 boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
               ),
               child: ClipOval(
-                child: Image.network(
-                  DatabaseService.getCORSProxyUrl(place.image), 
+                child: CachedNetworkImage(
+                  imageUrl: DatabaseService.getCORSProxyUrl(place.image), 
                   height: 40, 
                   width: 40, 
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Icon(Icons.location_city, color: Colors.red.shade700, size: 40),
+                  placeholder: (context, url) => Icon(Icons.image, color: Colors.grey),
+                  errorWidget: (context, url, error) => Icon(Icons.location_city, color: Colors.red.shade700, size: 40),
                 ),
               ),
             ),
@@ -156,7 +160,9 @@ class HomeScreen extends StatelessWidget {
           UserAccountsDrawerHeader(
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
-              backgroundImage: user?.profilePic != null && user!.profilePic.isNotEmpty ? NetworkImage(user.profilePic) : null,
+              backgroundImage: user?.profilePic != null && user!.profilePic.isNotEmpty 
+                  ? CachedNetworkImageProvider(DatabaseService.getCORSProxyUrl(user.profilePic)) 
+                  : null,
               child: user?.profilePic == null || user!.profilePic.isEmpty ? Icon(Icons.person, size: 40, color: Colors.blue.shade900) : null,
             ),
             accountName: Text(user?.name ?? "Traveler", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),

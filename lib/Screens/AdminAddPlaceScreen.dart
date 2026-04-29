@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../Services/DatabaseService.dart';
 import '../Models/PlaceModel.dart';
 
@@ -125,10 +126,11 @@ class _AdminAddPlaceScreenState extends State<AdminAddPlaceScreen> {
                         borderRadius: BorderRadius.circular(15),
                         child: _image != null
                           ? (kIsWeb ? Image.network(_image!.path, fit: BoxFit.cover, errorBuilder: (c,e,s) => Icon(Icons.error)) : Image.file(File(_image!.path), fit: BoxFit.cover))
-                          : Image.network(
-                              DatabaseService.getCORSProxyUrl(_existingImageUrl!),
+                          : CachedNetworkImage(
+                              imageUrl: DatabaseService.getCORSProxyUrl(_existingImageUrl!),
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
+                              placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                              errorWidget: (context, url, error) {
                                 return Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [

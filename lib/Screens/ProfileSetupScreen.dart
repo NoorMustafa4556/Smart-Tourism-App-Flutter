@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../Providers/AuthProvider.dart';
 import '../Services/DatabaseService.dart';
 import 'HomeScreen.dart';
@@ -142,7 +143,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       backgroundImage: _image != null 
                           ? (kIsWeb ? NetworkImage(_image!.path) as ImageProvider : FileImage(File(_image!.path)))
                           : (user?.profilePic != null && user!.profilePic.isNotEmpty 
-                              ? NetworkImage(user.profilePic) 
+                              ? CachedNetworkImageProvider(DatabaseService.getCORSProxyUrl(user!.profilePic)) 
                               : null),
                       child: _image == null && (user?.profilePic.isEmpty ?? true) ? Icon(Icons.person, size: 60, color: Colors.grey) : null,
                     ),

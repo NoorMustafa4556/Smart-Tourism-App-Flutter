@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../Models/PlaceModel.dart';
 import 'BookingDetailsFormScreen.dart';
 import '../Services/DatabaseService.dart';
@@ -24,12 +25,13 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(widget.place.name),
-              background: Image.network(
-                DatabaseService.getCORSProxyUrl(widget.place.image), 
+              background: CachedNetworkImage(
+                imageUrl: DatabaseService.getCORSProxyUrl(widget.place.image), 
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
+                placeholder: (context, url) => Container(color: Colors.blue.shade900),
+                errorWidget: (context, url, error) => Container(
                   color: Colors.blue.shade900,
-                  child: Center(child: Icon(Icons.image_not_supported, color: Colors.white, size: 50)),
+                  child: Center(child: Icon(Icons.error, color: Colors.white)),
                 ),
               ),
             ),
