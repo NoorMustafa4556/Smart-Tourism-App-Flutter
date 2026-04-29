@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../Models/PlaceModel.dart';
 import 'BookingDetailsFormScreen.dart';
+import '../Services/DatabaseService.dart';
 
 class PlaceDetailsScreen extends StatefulWidget {
   final PlaceModel place;

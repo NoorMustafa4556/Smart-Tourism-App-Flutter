@@ -122,7 +122,8 @@ class DatabaseService {
   // Helper to bypass Web CORS for images
   static String getCORSProxyUrl(String url) {
     if (kIsWeb && url.startsWith('http')) {
-      return 'https://api.allorigins.win/raw?url=${Uri.encodeComponent(url)}';
+      // using an image-specific proxy that reliably handles binary data and CORS
+      return 'https://images.weserv.nl/?url=${Uri.encodeComponent(url)}';
     }
     return url;
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../Models/BookingModel.dart';
 import '../Models/PlaceModel.dart';
 import '../Models/PaymentMethodModel.dart';
@@ -242,14 +243,37 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
 
   void _showImageDialog(String imageUrl) {
     showDialog(context: context, builder: (context) => Dialog(
-      child: Image.network(
-        DatabaseService.getCORSProxyUrl(imageUrl), 
-        fit: BoxFit.contain,
-        errorBuilder: (context, error, stackTrace) => Container(
-          height: 300,
-          color: Colors.grey.shade200,
-          child: Center(child: Text("CORS Error: Image blocked on Web.", style: TextStyle(color: Colors.grey))),
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Image.network(
+              DatabaseService.getCORSProxyUrl(imageUrl), 
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) => Container(
+                height: 300,
+                color: Colors.grey.shade200,
+                child: Center(child: Text("CORS Error: Image blocked on Web.", style: TextStyle(color: Colors.grey))),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: ElevatedButton.icon(
+              icon: Icon(Icons.open_in_browser),
+              label: Text("View Original Full Image"),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade800, foregroundColor: Colors.white),
+              onPressed: () async {
+                final Uri url = Uri.parse(imageUrl);
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Could not open image in browser.')));
+                }
+              },
+            ),
+          )
+        ],
       )
     ));
   }
