@@ -9,9 +9,31 @@ import 'PlaceDetailsScreen.dart';
 import 'MyBookingsScreen.dart';
 import 'ProfileSetupScreen.dart';
 import 'WelcomeScreen.dart';
+import 'TripPlanScreen.dart';
+import '../Services/NotificationService.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   final DatabaseService _db = DatabaseService();
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize Notification Listeners
+    NotificationService().initialize(context);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,36 +67,7 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 25,
-                  backgroundColor: Colors.grey.shade200,
-                  backgroundImage: user?.profilePic != null && user!.profilePic.isNotEmpty 
-                      ? CachedNetworkImageProvider(DatabaseService.getCORSProxyUrl(user.profilePic)) 
-                      : null,
-                  child: user?.profilePic == null || user!.profilePic.isEmpty ? Icon(Icons.person, color: Colors.grey) : null,
-                ),
-                SizedBox(width: 15),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Need a Vacation?", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 14)),
-                    Text(user?.name ?? 'Traveler', style: GoogleFonts.poppins(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text("Select a destination to explore near you.", style: GoogleFonts.poppins(color: Colors.grey.shade600, fontSize: 13)),
-          ),
-          SizedBox(height: 25),
+          _buildSearchSection(),
           Expanded(
             child: StreamBuilder<List<PlaceModel>>(
               stream: _db.getPlaces(),
@@ -82,7 +75,13 @@ class HomeScreen extends StatelessWidget {
                 if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator(color: Colors.blue.shade900));
                 if (!snapshot.hasData || snapshot.data!.isEmpty) return Center(child: Text("No places found.", style: TextStyle(color: Colors.grey)));
 
-                final places = snapshot.data!;
+                final places = snapshot.data!.where((p) => 
+                  p.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
+                  p.location.toLowerCase().contains(_searchQuery.toLowerCase())
+                ).toList();
+
+                if (places.isEmpty) return Center(child: Text("No matches found for '$_searchQuery'", style: TextStyle(color: Colors.grey)));
+                
                 return GridView.builder(
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -98,6 +97,59 @@ class HomeScreen extends StatelessWidget {
                   },
                 );
               },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchSection() {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.userModel;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 25,
+                backgroundColor: Colors.grey.shade200,
+                backgroundImage: user?.profilePic != null && user!.profilePic.isNotEmpty 
+                    ? CachedNetworkImageProvider(DatabaseService.getCORSProxyUrl(user.profilePic)) 
+                    : null,
+                child: user?.profilePic == null || user!.profilePic.isEmpty ? Icon(Icons.person, color: Colors.grey) : null,
+              ),
+              SizedBox(width: 15),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Need a Vacation?", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 14)),
+                  Text(user?.name ?? 'Traveler', style: GoogleFonts.poppins(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          TextField(
+            controller: _searchController,
+            onChanged: (val) => setState(() => _searchQuery = val),
+            decoration: InputDecoration(
+              hintText: "Search destinations...",
+              prefixIcon: Icon(Icons.search, color: Colors.blue.shade900),
+              suffixIcon: _searchQuery.isNotEmpty 
+                  ? IconButton(icon: Icon(Icons.clear), onPressed: () {
+                      _searchController.clear();
+                      setState(() => _searchQuery = "");
+                    })
+                  : null,
+              filled: true,
+              fillColor: Colors.grey.shade100,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+              contentPadding: EdgeInsets.symmetric(vertical: 15),
             ),
           ),
         ],
@@ -174,6 +226,10 @@ class HomeScreen extends StatelessWidget {
           _buildDrawerItem(Icons.history, "My Bookings", () {
             Navigator.pop(context);
             Navigator.push(context, MaterialPageRoute(builder: (context) => MyBookingsScreen()));
+          }),
+          _buildDrawerItem(Icons.map_outlined, "Trip Plans", () {
+            Navigator.pop(context);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => TripPlanScreen()));
           }),
           _buildDrawerItem(Icons.person_outline, "My Profile", () {
             Navigator.pop(context);

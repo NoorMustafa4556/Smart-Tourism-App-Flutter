@@ -10,6 +10,7 @@ import '../Services/DatabaseService.dart';
 import 'AdminProfileScreen.dart';
 import 'AdminAddPlaceScreen.dart';
 import 'LoginScreen.dart';
+import '../Services/NotificationService.dart';
 
 class AdminDashboard extends StatefulWidget {
   @override
@@ -24,6 +25,8 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    // Initialize Notification Listeners
+    NotificationService().initialize(context);
   }
 
   @override

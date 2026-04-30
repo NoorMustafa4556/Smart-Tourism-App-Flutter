@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../Models/UserModel.dart';
+import '../Services/DatabaseService.dart';
+import '../Services/NotificationService.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -27,9 +29,14 @@ class AuthProvider with ChangeNotifier {
         _firestore.collection('users').doc(user.uid).snapshots().listen((doc) {
           if (doc.exists) {
             _userModel = UserModel.fromMap(doc.data() as Map<String, dynamic>);
+            // Save FCM Token in background (don't await it to avoid hangs)
+            NotificationService().saveToken(_userModel!.uid);
           } else {
-            _userModel = null; // No user data found
+            _userModel = null;
           }
+          _isInitialised = true;
+          notifyListeners();
+        }, onError: (e) {
           _isInitialised = true;
           notifyListeners();
         });
@@ -72,6 +79,9 @@ class AuthProvider with ChangeNotifier {
 
         await _firestore.collection('users').doc(user.uid).set(newUser.toMap());
         _userModel = newUser;
+
+        // Save FCM Token
+        await NotificationService().saveToken(user.uid);
       }
 
       _isLoading = false;

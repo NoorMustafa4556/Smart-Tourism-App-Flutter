@@ -6,6 +6,7 @@ import 'HomeScreen.dart';
 import 'SignUpScreen.dart';
 import 'ProfileSetupScreen.dart';
 import 'AdminDashboard.dart';
+import '../Services/NotificationService.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -49,6 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             // 1. Check for Admin Credentials
                             if (email == "admin@tourism.com" && password == "admin123") {
+                              // Save Admin FCM Token
+                              await NotificationService().saveToken("admin", isAdmin: true);
                               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AdminDashboard()));
                               return;
                             }

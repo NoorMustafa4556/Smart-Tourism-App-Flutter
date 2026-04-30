@@ -6,6 +6,8 @@ import 'package:image_picker/image_picker.dart';
 import '../Models/BookingModel.dart';
 import '../Models/PlaceModel.dart';
 import '../Models/PaymentMethodModel.dart';
+import '../Models/ItineraryModel.dart';
+import '../Models/ReviewModel.dart';
 
 class DatabaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -137,5 +139,40 @@ class DatabaseService {
       return 'https://corsproxy.io/?${Uri.encodeComponent(url)}';
     }
     return url;
+  }
+
+  // --- Itinerary Methods ---
+  Future<void> createItinerary(ItineraryModel itinerary) async {
+    await _firestore.collection('itineraries').doc(itinerary.id).set(itinerary.toMap());
+  }
+
+  Stream<List<ItineraryModel>> getUserItineraries(String userId) {
+    return _firestore
+        .collection('itineraries')
+        .where('userId', isEqualTo: userId)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => ItineraryModel.fromMap(doc.data())).toList();
+    });
+  }
+
+  Future<void> deleteItinerary(String id) async {
+    await _firestore.collection('itineraries').doc(id).delete();
+  }
+
+  // --- Review Methods ---
+  Future<void> addReview(ReviewModel review) async {
+    await _firestore.collection('reviews').doc(review.id).set(review.toMap());
+  }
+
+  Stream<List<ReviewModel>> getSpotReviews(String spotId) {
+    return _firestore
+        .collection('reviews')
+        .where('spotId', isEqualTo: spotId)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => ReviewModel.fromMap(doc.data())).toList();
+    });
   }
 }
