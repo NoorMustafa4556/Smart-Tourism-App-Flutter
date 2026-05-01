@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../Providers/AuthProvider.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../Models/HotelModel.dart';
 
 class PlaceDetailsScreen extends StatefulWidget {
   final PlaceModel place;
@@ -20,6 +21,8 @@ class PlaceDetailsScreen extends StatefulWidget {
 
 class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
   String selectedCategory = 'Individual';
+  HotelModel? selectedHotel;
+  int stayDays = 1;
 
   @override
   Widget build(BuildContext context) {
@@ -54,28 +57,16 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
                   SizedBox(height: 25),
                   _buildItineraryButton(),
                   SizedBox(height: 30),
+                  _buildHotelsSection(),
+                  SizedBox(height: 30),
+                  _buildDurationSection(),
+                  SizedBox(height: 30),
+                  _buildRelatedPlacesSection(),
+                  SizedBox(height: 30),
                   Divider(),
                   _buildReviewsSection(),
                   SizedBox(height: 50),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => BookingDetailsFormScreen(
-                            place: widget.place,
-                          ),
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade800,
-                      foregroundColor: Colors.white,
-                      minimumSize: Size(double.infinity, 55),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                    ),
-                    child: Text("CONTINUE TO BOOKING", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
+                  _buildBookingButton(),
                 ],
               ),
             ),
@@ -85,9 +76,140 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
     );
   }
 
+  Widget _buildHotelsSection() {
+    final db = DatabaseService();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Nearby Accommodation", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
+        SizedBox(height: 10),
+        Container(
+          height: 180,
+          child: StreamBuilder<List<HotelModel>>(
+            stream: db.getSpotHotels(widget.place.id),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+              if (snapshot.data!.isEmpty) return Center(child: Text("No hotels listed for this spot.", style: TextStyle(color: Colors.grey)));
+              
+              final hotels = snapshot.data!;
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: hotels.length,
+                itemBuilder: (context, index) {
+                  final hotel = hotels[index];
+                  final isSelected = selectedHotel?.id == hotel.id;
+                  return GestureDetector(
+                    onTap: () => setState(() => selectedHotel = hotel),
+                    child: Container(
+                      width: 150,
+                      margin: EdgeInsets.only(right: 15),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: isSelected ? Colors.blue.shade900 : Colors.grey.shade300, width: 2),
+                        color: Colors.white,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(13)),
+                            child: CachedNetworkImage(
+                              imageUrl: DatabaseService.getCORSProxyUrl(hotel.image),
+                              height: 100,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(hotel.name, style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                Text("Rs. ${hotel.pricePerNight.toInt()}/night", style: TextStyle(fontSize: 10, color: Colors.blue.shade900)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDurationSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Stay Duration", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
+        SizedBox(height: 10),
+        Row(
+          children: [
+            _durationBtn(Icons.remove, () { if(stayDays > 1) setState(() => stayDays--); }),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text("$stayDays Days", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+            _durationBtn(Icons.add, () => setState(() => stayDays++)),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _durationBtn(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(8),
+        decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(10)),
+        child: Icon(icon, color: Colors.blue.shade900),
+      ),
+    );
+  }
+
+  Widget _buildBookingButton() {
+    double totalPrice = widget.place.price + (selectedHotel?.pricePerNight ?? 0) * stayDays;
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BookingDetailsFormScreen(
+              place: widget.place,
+              hotel: selectedHotel,
+              totalDays: stayDays,
+              totalPrice: totalPrice,
+            ),
+          ),
+        );
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue.shade900,
+        foregroundColor: Colors.white,
+        minimumSize: Size(double.infinity, 55),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      ),
+      child: Column(
+        children: [
+          Text("CONTINUE TO BOOKING", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text("Total Est: Rs. ${totalPrice.toInt()}", style: TextStyle(fontSize: 12, color: Colors.white70)),
+        ],
+      ),
+    );
+  }
+
   Widget _buildItineraryButton() {
     final authProvider = Provider.of<AuthProvider>(context);
     final db = DatabaseService();
+
+    if (authProvider.userModel == null) return SizedBox();
 
     return StreamBuilder<List<ItineraryModel>>(
       stream: db.getUserItineraries(authProvider.userModel!.uid),
@@ -238,6 +360,10 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
               onPressed: () async {
                 if (_commentController.text.isEmpty) return;
                 final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                if (authProvider.userModel == null) {
+                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please login to add review")));
+                   return;
+                }
                 final review = ReviewModel(
                   id: DateTime.now().millisecondsSinceEpoch.toString(),
                   spotId: widget.place.id,
@@ -261,4 +387,58 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
     );
   }
 
+  Widget _buildRelatedPlacesSection() {
+    final db = DatabaseService();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Discover More ${widget.place.category}", style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.bold)),
+        SizedBox(height: 10),
+        Container(
+          height: 180,
+          child: StreamBuilder<List<PlaceModel>>(
+            stream: db.getPlaces(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return SizedBox();
+              final related = snapshot.data!.where((p) => p.category == widget.place.category && p.id != widget.place.id).toList();
+              if (related.isEmpty) return Text("No other spots in this category.", style: TextStyle(color: Colors.grey, fontSize: 12));
+              
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: related.length,
+                itemBuilder: (context, index) {
+                  final spot = related[index];
+                  return GestureDetector(
+                    onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PlaceDetailsScreen(place: spot))),
+                    child: Container(
+                      width: 140,
+                      margin: EdgeInsets.only(right: 15),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        image: DecorationImage(
+                          image: CachedNetworkImageProvider(DatabaseService.getCORSProxyUrl(spot.image)),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.transparent, Colors.black87]),
+                        ),
+                        padding: EdgeInsets.all(10),
+                        child: Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Text(spot.name, style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold), maxLines: 2, overflow: TextOverflow.ellipsis),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
 }

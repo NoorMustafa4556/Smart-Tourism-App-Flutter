@@ -20,6 +20,8 @@ class BookingFormScreen extends StatefulWidget {
   final int days;
   final String category;
   final double totalPrice;
+  final String? hotelName;
+  final String? startDate;
 
   BookingFormScreen({
     required this.place,
@@ -30,6 +32,8 @@ class BookingFormScreen extends StatefulWidget {
     required this.days,
     required this.category,
     required this.totalPrice,
+    this.hotelName,
+    this.startDate,
   });
 
   @override
@@ -84,6 +88,9 @@ class _BookingFormScreenState extends State<BookingFormScreen> {
         status: 'pending',
         adminRemarks: '',
         timestamp: DateTime.now(),
+        hotelName: widget.hotelName,
+        totalDays: widget.days,
+        startDate: widget.startDate,
       );
 
       await _db.createBooking(booking);

@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class BookingModel {
   final String bookingId;
   final String userId;
@@ -14,6 +16,9 @@ class BookingModel {
   final String status; // pending, approved, processed, rejected
   final String adminRemarks;
   final DateTime timestamp;
+  final String? hotelName;
+  final int totalDays;
+  final String? startDate;
 
   BookingModel({
     required this.bookingId,
@@ -31,6 +36,9 @@ class BookingModel {
     required this.status,
     required this.adminRemarks,
     required this.timestamp,
+    this.hotelName,
+    required this.totalDays,
+    this.startDate,
   });
 
   Map<String, dynamic> toMap() {
@@ -50,6 +58,9 @@ class BookingModel {
       'status': status,
       'adminRemarks': adminRemarks,
       'timestamp': timestamp.toIso8601String(),
+      'hotelName': hotelName,
+      'totalDays': totalDays,
+      'startDate': startDate,
     };
   }
 
@@ -69,10 +80,13 @@ class BookingModel {
       paymentScreenshot: map['paymentScreenshot'] ?? '',
       status: map['status'] ?? 'pending',
       adminRemarks: map['adminRemarks'] ?? '',
+      hotelName: map['hotelName'],
+      totalDays: map['totalDays'] ?? 1,
+      startDate: map['startDate'],
       timestamp: map['timestamp'] != null 
           ? (map['timestamp'] is String 
               ? DateTime.parse(map['timestamp']) 
-              : (map['timestamp'] as dynamic).toDate())
+              : (map['timestamp'] as Timestamp).toDate())
           : DateTime.now(),
     );
   }

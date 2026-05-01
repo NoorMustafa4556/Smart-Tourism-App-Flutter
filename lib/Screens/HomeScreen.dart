@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../Auth/WelcomeScreen.dart';
 import '../Providers/AuthProvider.dart';
 import '../Services/DatabaseService.dart';
 import '../Models/PlaceModel.dart';
 import 'PlaceDetailsScreen.dart';
 import 'MyBookingsScreen.dart';
-import 'ProfileSetupScreen.dart';
-import 'WelcomeScreen.dart';
+import '../Auth/ProfileSetupScreen.dart';
+
 import 'TripPlanScreen.dart';
 import '../Services/NotificationService.dart';
 
@@ -21,6 +22,14 @@ class _HomeScreenState extends State<HomeScreen> {
   final DatabaseService _db = DatabaseService();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = "";
+  String _selectedCategory = "All";
+  final List<Map<String, dynamic>> _categories = [
+    {"name": "All", "icon": Icons.apps},
+    {"name": "Mountains", "icon": Icons.landscape},
+    {"name": "Beaches", "icon": Icons.beach_access},
+    {"name": "Historical", "icon": Icons.account_balance},
+    {"name": "Nature", "icon": Icons.forest},
+  ];
 
   @override
   void initState() {
@@ -65,36 +74,42 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       drawer: _buildDrawer(context, user, authProvider),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSearchSection(),
+          _buildCategoriesSection(),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Popular Destinations", style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold)),
+                TextButton(onPressed: () {}, child: Text("See All")),
+              ],
+            ),
+          ),
           Expanded(
             child: StreamBuilder<List<PlaceModel>>(
               stream: _db.getPlaces(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator(color: Colors.blue.shade900));
-                if (!snapshot.hasData || snapshot.data!.isEmpty) return Center(child: Text("No places found.", style: TextStyle(color: Colors.grey)));
+                if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
+                final places = snapshot.data?.where((p) {
+                  final matchesSearch = p.name.toLowerCase().contains(_searchQuery.toLowerCase()) || p.location.toLowerCase().contains(_searchQuery.toLowerCase());
+                  final matchesCategory = _selectedCategory == "All" || p.category == _selectedCategory;
+                  return matchesSearch && matchesCategory;
+                }).toList() ?? [];
 
-                final places = snapshot.data!.where((p) => 
-                  p.name.toLowerCase().contains(_searchQuery.toLowerCase()) || 
-                  p.location.toLowerCase().contains(_searchQuery.toLowerCase())
-                ).toList();
+                if (places.isEmpty) return Center(child: Text("No matches found."));
 
-                if (places.isEmpty) return Center(child: Text("No matches found for '$_searchQuery'", style: TextStyle(color: Colors.grey)));
-                
                 return GridView.builder(
                   padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
+                    childAspectRatio: 0.75,
                     crossAxisSpacing: 15,
                     mainAxisSpacing: 15,
-                    childAspectRatio: 0.85,
                   ),
                   itemCount: places.length,
-                  itemBuilder: (context, index) {
-                    final place = places[index];
-                    return _buildPlaceGridCard(context, place);
-                  },
+                  itemBuilder: (context, index) => _buildPlaceCard(context, places[index]),
                 );
               },
             ),
@@ -104,99 +119,169 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchSection() {
+  Widget _buildTopHeader() {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.userModel;
-
-    return Container(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 25,
-                backgroundColor: Colors.grey.shade200,
-                backgroundImage: user?.profilePic != null && user!.profilePic.isNotEmpty 
-                    ? CachedNetworkImageProvider(DatabaseService.getCORSProxyUrl(user.profilePic)) 
-                    : null,
-                child: user?.profilePic == null || user!.profilePic.isEmpty ? Icon(Icons.person, color: Colors.grey) : null,
-              ),
-              SizedBox(width: 15),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Need a Vacation?", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 14)),
-                  Text(user?.name ?? 'Traveler', style: GoogleFonts.poppins(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.bold)),
-                ],
-              ),
+              Text("Welcome,", style: GoogleFonts.poppins(color: Colors.grey, fontSize: 16)),
+              Text("Explore the World", style: GoogleFonts.poppins(color: Colors.black87, fontSize: 24, fontWeight: FontWeight.bold)),
             ],
           ),
-          SizedBox(height: 20),
-          TextField(
-            controller: _searchController,
-            onChanged: (val) => setState(() => _searchQuery = val),
-            decoration: InputDecoration(
-              hintText: "Search destinations...",
-              prefixIcon: Icon(Icons.search, color: Colors.blue.shade900),
-              suffixIcon: _searchQuery.isNotEmpty 
-                  ? IconButton(icon: Icon(Icons.clear), onPressed: () {
-                      _searchController.clear();
-                      setState(() => _searchQuery = "");
-                    })
-                  : null,
-              filled: true,
-              fillColor: Colors.grey.shade100,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-              contentPadding: EdgeInsets.symmetric(vertical: 15),
-            ),
+          CircleAvatar(
+            radius: 25,
+            backgroundColor: Colors.blue.shade900,
+            backgroundImage: user?.profilePic != null && user!.profilePic.isNotEmpty 
+                ? CachedNetworkImageProvider(DatabaseService.getCORSProxyUrl(user.profilePic)) 
+                : null,
+            child: user?.profilePic == null || user!.profilePic.isEmpty ? Icon(Icons.person, color: Colors.white) : null,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPlaceGridCard(BuildContext context, PlaceModel place) {
+  Widget _buildSearchSection() {
+    return Container(
+      padding: EdgeInsets.all(20),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (val) => setState(() => _searchQuery = val),
+        decoration: InputDecoration(
+          hintText: "Search destinations, hotels...",
+          prefixIcon: Icon(Icons.search, color: Colors.blue.shade900),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: Colors.grey.shade300)),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide(color: Colors.grey.shade300)),
+          contentPadding: EdgeInsets.symmetric(vertical: 18),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoriesSection() {
+    return Container(
+      height: 100,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        itemCount: _categories.length,
+        itemBuilder: (context, index) {
+          final cat = _categories[index];
+          final isSelected = _selectedCategory == cat['name'];
+          return GestureDetector(
+            onTap: () => setState(() => _selectedCategory = cat['name']),
+            child: Container(
+              width: 85,
+              margin: EdgeInsets.symmetric(horizontal: 4),
+              child: Column(
+                children: [
+                  AnimatedContainer(
+                    duration: Duration(milliseconds: 300),
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isSelected ? Color(0xFF004E92) : Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: isSelected ? Color(0xFF004E92).withOpacity(0.3) : Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        )
+                      ],
+                    ),
+                    child: Icon(cat['icon'], color: isSelected ? Colors.white : Colors.grey.shade600, size: 28),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    cat['name'],
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected ? Color(0xFF004E92) : Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPlaceCard(BuildContext context, PlaceModel place) {
     return GestureDetector(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => PlaceDetailsScreen(place: place))),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.red.shade50, // Matches the light pink/red background of the blood app
+          color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5, offset: Offset(0, 5))],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: Offset(0, 4))],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 5)],
-              ),
-              child: ClipOval(
-                child: CachedNetworkImage(
-                  imageUrl: DatabaseService.getCORSProxyUrl(place.image), 
-                  height: 40, 
-                  width: 40, 
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Icon(Icons.image, color: Colors.grey),
-                  errorWidget: (context, url, error) => Icon(Icons.location_city, color: Colors.red.shade700, size: 40),
-                ),
+            Expanded(
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    child: CachedNetworkImage(
+                      imageUrl: DatabaseService.getCORSProxyUrl(place.image),
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(color: Colors.grey.shade200),
+                      errorWidget: (context, url, error) => Icon(Icons.broken_image),
+                    ),
+                  ),
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(10)),
+                      child: Text("Rs. ${place.price.toInt()}", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 15),
-            Text(
-              place.name,
-              style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 5),
-            Text(
-              "Rs. ${place.price.toInt()}",
-              style: GoogleFonts.poppins(fontSize: 12, color: Colors.red.shade700, fontWeight: FontWeight.w600),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    place.name,
+                    style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, color: Color(0xFF004E92), size: 12),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          place.location,
+                          style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey.shade600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),

@@ -5,11 +5,13 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../Models/BookingModel.dart';
 import '../Models/PlaceModel.dart';
+import '../Models/HotelModel.dart';
 import '../Models/PaymentMethodModel.dart';
 import '../Services/DatabaseService.dart';
 import 'AdminProfileScreen.dart';
 import 'AdminAddPlaceScreen.dart';
-import 'LoginScreen.dart';
+import 'AdminAddHotelScreen.dart';
+import '../Auth/LoginScreen.dart';
 import '../Services/NotificationService.dart';
 
 class AdminDashboard extends StatefulWidget {
@@ -24,7 +26,7 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     // Initialize Notification Listeners
     NotificationService().initialize(context);
   }
@@ -45,6 +47,7 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
           tabs: [
             Tab(icon: Icon(Icons.book_online), text: "Bookings"),
             Tab(icon: Icon(Icons.place), text: "Places"),
+            Tab(icon: Icon(Icons.hotel), text: "Hotels"),
             Tab(icon: Icon(Icons.payment), text: "Payments"),
           ],
         ),
@@ -104,6 +107,7 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
         children: [
           _buildBookingsTab(),
           _buildPlacesTab(),
+          _buildHotelsTab(),
           _buildPaymentsTab(),
         ],
       ),
@@ -112,9 +116,11 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
           if (_tabController.index == 1) {
             Navigator.push(context, MaterialPageRoute(builder: (context) => AdminAddPlaceScreen()));
           } else if (_tabController.index == 2) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => AdminAddHotelScreen()));
+          } else if (_tabController.index == 3) {
             _showPaymentMethodDialog();
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Select Places or Payments tab to add items.")));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Select Places, Hotels, or Payments tab to add items.")));
           }
         },
         backgroundColor: Colors.amber.shade900,
@@ -154,6 +160,8 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
                         Text("Phone: ${booking.phone}"),
                         Text("Email: ${booking.email}"),
                         Text("Details: ${booking.persons} Persons, ${booking.days} Days (${booking.category})"),
+                        if (booking.hotelName != null) Text("Hotel: ${booking.hotelName}", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green.shade800)),
+                        if (booking.startDate != null) Text("Start Date: ${booking.startDate}", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
                         Text("Payment: ${booking.paymentMethod}"),
                         Text("Date: ${DateFormat('dd MMM yyyy, hh:mm a').format(booking.timestamp)}"),
                         SizedBox(height: 10),
@@ -286,6 +294,50 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
     );
   }
 
+  // --- HOTELS TAB ---
+  Widget _buildHotelsTab() {
+    return StreamBuilder<List<HotelModel>>(
+      stream: _db.getHotels(), // I should add this method to DatabaseService if it doesn't exist
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
+        final hotels = snapshot.data ?? [];
+        if (hotels.isEmpty) return Center(child: Text("No hotels found. Add one!"));
+
+        return ListView.builder(
+          padding: EdgeInsets.all(15),
+          itemCount: hotels.length,
+          itemBuilder: (context, index) {
+            final hotel = hotels[index];
+            return Card(
+              color: Colors.white,
+              margin: EdgeInsets.only(bottom: 10),
+              child: ListTile(
+                leading: hotel.image.isNotEmpty 
+                    ? CircleAvatar(backgroundImage: CachedNetworkImageProvider(DatabaseService.getCORSProxyUrl(hotel.image)))
+                    : CircleAvatar(child: Icon(Icons.hotel)),
+                title: Text(hotel.name, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                subtitle: Text("Rs. ${hotel.pricePerNight.toInt()} / night"),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => AdminAddHotelScreen(hotelToEdit: hotel))),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _showDeleteConfirmation("Hotel", () => _db.deleteHotel(hotel.id)),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   // --- HELPERS ---
   Color _getStatusColor(String status) {
     if (status == 'approved' || status == 'approve') return Colors.green;
@@ -400,11 +452,11 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(controller: nameController, decoration: InputDecoration(labelText: "Method Name (e.g. Jazz Cash)")),
+              TextField(controller: nameController, decoration: InputDecoration(labelText: "Method Name (e.g. Jazz Cash)"), textInputAction: TextInputAction.next),
               SizedBox(height: 10),
-              TextField(controller: titleController, decoration: InputDecoration(labelText: "Account Title")),
+              TextField(controller: titleController, decoration: InputDecoration(labelText: "Account Title"), textInputAction: TextInputAction.next),
               SizedBox(height: 10),
-              TextField(controller: numberController, decoration: InputDecoration(labelText: "Account Number")),
+              TextField(controller: numberController, decoration: InputDecoration(labelText: "Account Number"), textInputAction: TextInputAction.done),
             ],
           ),
         ),

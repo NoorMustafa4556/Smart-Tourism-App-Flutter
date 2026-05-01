@@ -9,7 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../Providers/AuthProvider.dart';
 import '../Services/DatabaseService.dart';
-import 'HomeScreen.dart';
+import '../Screens/HomeScreen.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   final bool isEditMode;
@@ -194,18 +194,19 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             Divider(height: 40),
             Text("Confirm Identity", style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.redAccent)),
             SizedBox(height: 10),
-            _buildTextField(_passwordController, "Login Password", Icons.lock_outline, isPassword: true),
+            _buildTextField(_passwordController, "Login Password", Icons.lock_outline, isPassword: true, isLast: true),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool readOnly = false, bool isPassword = false}) {
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool readOnly = false, bool isPassword = false, bool isLast = false}) {
     return TextField(
       controller: controller,
       readOnly: readOnly,
       obscureText: isPassword && _isObscure,
+      textInputAction: isLast ? TextInputAction.done : TextInputAction.next,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.blue.shade900),

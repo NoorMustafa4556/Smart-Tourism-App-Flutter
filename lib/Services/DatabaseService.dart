@@ -8,6 +8,7 @@ import '../Models/PlaceModel.dart';
 import '../Models/PaymentMethodModel.dart';
 import '../Models/ItineraryModel.dart';
 import '../Models/ReviewModel.dart';
+import '../Models/HotelModel.dart';
 
 class DatabaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -173,6 +174,36 @@ class DatabaseService {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) => ReviewModel.fromMap(doc.data())).toList();
+    });
+  }
+
+  // --- Hotel Methods ---
+  Future<void> createHotel(HotelModel hotel) async {
+    await _firestore.collection('hotels').doc(hotel.id).set(hotel.toMap());
+  }
+
+  Stream<List<HotelModel>> getSpotHotels(String spotId) {
+    return _firestore
+        .collection('hotels')
+        .where('spotId', isEqualTo: spotId)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => HotelModel.fromMap(doc.data())).toList();
+    });
+  }
+
+  Future<void> deleteHotel(String hotelId) async {
+    await _firestore.collection('hotels').doc(hotelId).delete();
+  }
+
+  Future<void> updateHotel(HotelModel hotel) async {
+    await _firestore.collection('hotels').doc(hotel.id).update(hotel.toMap());
+  }
+
+  // Admin: Get All Hotels
+  Stream<List<HotelModel>> getHotels() {
+    return _firestore.collection('hotels').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => HotelModel.fromMap(doc.data())).toList();
     });
   }
 }

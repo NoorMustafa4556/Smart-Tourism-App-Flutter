@@ -5,6 +5,7 @@ class PlaceModel {
   final String image;
   final String location;
   final double price;
+  final String category;
 
   PlaceModel({
     required this.id,
@@ -13,6 +14,7 @@ class PlaceModel {
     required this.image,
     required this.location,
     required this.price,
+    required this.category,
   });
 
   Map<String, dynamic> toMap() {
@@ -23,6 +25,7 @@ class PlaceModel {
       'image': image,
       'location': location,
       'price': price,
+      'category': category,
     };
   }
 
@@ -34,6 +37,7 @@ class PlaceModel {
       image: map['image'] ?? '',
       location: map['location'] ?? '',
       price: (map['price'] ?? 0).toDouble(),
+      category: map['category'] ?? 'General',
     );
   }
 }

@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../Providers/AuthProvider.dart';
 import 'WelcomeScreen.dart';
-import 'HomeScreen.dart';
+import '../Screens/HomeScreen.dart';
 import 'ProfileSetupScreen.dart';
 
 class SplashScreen extends StatefulWidget {

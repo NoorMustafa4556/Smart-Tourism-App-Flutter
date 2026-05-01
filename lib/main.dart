@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'Providers/AuthProvider.dart';
-import 'Screens/SplashScreen.dart';
+import 'Auth/SplashScreen.dart';
 import 'firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'Services/NotificationService.dart';

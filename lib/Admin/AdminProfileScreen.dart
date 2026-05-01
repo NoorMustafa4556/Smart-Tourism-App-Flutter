@@ -123,6 +123,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   SizedBox(height: 30),
                   TextField(
                     controller: _nameController,
+                    textInputAction: TextInputAction.done,
                     decoration: InputDecoration(
                       labelText: "Admin Name",
                       prefixIcon: Icon(Icons.person_outline),

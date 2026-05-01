@@ -4,49 +4,57 @@
 
 ---
 
+## 🌟 Key Features
 
-## 🌟 Key Pillars of the Project
-
-### 📱 1. Premium VIP Flutter App
-A high-performance mobile experience featuring:
-- **Lavish UI/UX:** Deep navy gradients, gold accents (amber), and premium Google Fonts (Poppins & Montserrat).
-- **VIP Security:** Identity re-verification using password checks for sensitive profile updates.
-- **Real-time Sync:** Powered by Firebase Streams for instant data updates across the app.
-- **PascalCase Architecture:** Professional codebase structure following industry standards.
+### 📱 1. Traveler Experience
+- **Premium UI/UX:** Deep navy gradients, gold accents, and elegant Google Fonts (Poppins & Montserrat).
+- **Smart Discovery:** Explore destinations via circular categories, real-time search, and a beautiful grid layout.
+- **Dynamic Bookings:** 
+    - Real-time cost calculation based on persons and stay duration.
+    - Nearby Hotel selection integrated directly into the booking flow.
+    - Secure payment proof upload (Screenshot).
+- **Trip Planning:** Create custom itineraries and add your favorite spots.
+- **Real-time History:** Track booking status (Pending/Approved/Rejected) with admin feedback.
+- **Push Notifications:** Stay updated on your booking status and travel alerts.
+- **VIP Security:** Password-protected identity re-verification for profile updates.
 
 ### 🔐 2. Robust Firebase Integration
 - **Authentication:** Secure Email/Password login with session persistence.
-- **Firestore Database:** Real-time storage for User Profiles, Booking History, and Luxury Places.
-- **Cloud Storage:** High-quality image handling for profile pictures and booking screenshots.
+- **Firestore Database:** Real-time synchronization for users, places, hotels, reviews, and bookings.
+- **Cloud Storage:** High-performance storage for profile pics and payment receipts.
+- **Web CORS Support:** Built-in proxy handling for web-compatible network images.
 
-### 🛠️ 3. Admin Control Center
-A specialized management interface for tourism operators:
-- **Admin Dashboard:** Monitor and verify travel requests.
-- **Secure Access:** Dedicated Admin Login (admin@tourism.com) for authorized personnel.
+### 🛠️ 3. Advanced Admin Panel
+- **Comprehensive Dashboard:** Manage the entire ecosystem from a single interface.
+- **Booking Management:** Review, Approve, or Reject bookings with custom remarks.
+- **Content Management:** Add, edit, or delete Places and Hotels with real-time updates.
+- **Financial Control:** Manage payment methods (JazzCash, EasyPaisa, etc.) for the app.
+- **Analytics:** At-a-glance status counts for total bookings and active spots.
 
 ---
 
 ## 🚀 Tech Stack
 
 - **Frontend:** Flutter (Dart)
-- **Backend:** Firebase (Auth, Firestore, Storage)
+- **Backend:** Firebase (Auth, Firestore, Storage, Messaging)
 - **State Management:** Provider
 - **Design:** Material 3, Google Fonts, Custom VIP Gradients
-- **Tools:** Image Picker, Intl Phone Field, Cloud Firestore
+- **Key Plugins:** `cached_network_image`, `image_picker`, `intl`, `firebase_messaging`, `intl_phone_field`.
 
 ---
 
-## 📂 Project Structure (PascalCase Convention)
-
-Strictly following professional standards for maintainability:
+## 📂 Professional Project Structure
 
 ```text
 lib/
-├── Models/         # PlaceModel.dart, UserModel.dart, BookingModel.dart
-├── Providers/      # AuthProvider.dart
-├── Screens/        # HomeScreen.dart, LoginScreen.dart, ProfileSetupScreen.dart...
-├── Services/       # DatabaseService.dart
-└── main.dart
+├── Admin/          # Admin Dashboard, Manage Places, Hotels, & Payments
+├── Auth/           # Login, SignUp, Welcome, Profile Setup, Splash
+├── Models/         # Data Models (Place, Hotel, Booking, Review, etc.)
+├── Providers/      # State Management (AuthProvider)
+├── Screens/        # Home, Place Details, Booking Forms, My Bookings, Trip Plans
+├── Services/       # Firebase, Notifications, Database Logic
+├── Widgets/        # Reusable UI Components
+└── main.dart       # Entry Point & Theme Configuration
 ```
 
 ---
@@ -56,7 +64,7 @@ lib/
 - **Primary Colors:** VIP Navy (`#000428`) and Deep Blue (`#004E92`).
 - **Accents:** Luxury Amber (`#FFB300`) for premium highlights.
 - **Typography:** `Poppins` and `Montserrat` for a sleek, modern look.
-- **Vibe:** Lavish, Clean, and VIP.
+- **Vibe:** Lavish, Clean, and Professional.
 
 ---
 
@@ -64,10 +72,10 @@ lib/
 
 1. **Firebase Config:** 
    - Create a project on Firebase Console.
-   - Enable Auth, Firestore, and Storage.
+   - Enable Auth, Firestore, Storage, and Messaging.
    - Run `flutterfire configure` to link your app.
-2. **Storage Rules:** 
-   - Set Storage rules to `allow read, write: if true;` for testing.
+2. **Security Rules:** 
+   - Ensure Firestore and Storage rules allow authenticated reads/writes.
 3. **Run App:**
    ```bash
    flutter pub get

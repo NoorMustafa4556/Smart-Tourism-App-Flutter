@@ -25,6 +25,8 @@ class _AdminAddPlaceScreenState extends State<AdminAddPlaceScreen> {
   XFile? _image;
   String? _existingImageUrl;
   bool _isLoading = false;
+  String _selectedCategory = 'Mountains';
+  final List<String> _categories = ['Mountains', 'Beaches', 'Historical', 'Nature', 'General'];
   final DatabaseService _db = DatabaseService();
 
   @override
@@ -36,6 +38,7 @@ class _AdminAddPlaceScreenState extends State<AdminAddPlaceScreen> {
       _locationController.text = widget.placeToEdit!.location;
       _priceController.text = widget.placeToEdit!.price.toString();
       _existingImageUrl = widget.placeToEdit!.image;
+      _selectedCategory = widget.placeToEdit!.category;
     }
   }
 
@@ -73,6 +76,7 @@ class _AdminAddPlaceScreenState extends State<AdminAddPlaceScreen> {
         image: imageUrl,
         location: _locationController.text.trim(),
         price: double.parse(_priceController.text.trim()),
+        category: _selectedCategory,
       );
 
       if (widget.placeToEdit != null) {
@@ -151,9 +155,23 @@ class _AdminAddPlaceScreenState extends State<AdminAddPlaceScreen> {
             SizedBox(height: 15),
             _buildTextField(_priceController, "Base Price (Rs)", Icons.attach_money, isNumber: true),
             SizedBox(height: 15),
+            DropdownButtonFormField<String>(
+              value: _selectedCategory,
+              decoration: InputDecoration(
+                labelText: "Category",
+                prefixIcon: Icon(Icons.category, color: Colors.amber.shade900),
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+              ),
+              items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+              onChanged: (val) => setState(() => _selectedCategory = val!),
+            ),
+            SizedBox(height: 15),
             TextField(
               controller: _descriptionController,
               maxLines: 4,
+              textInputAction: TextInputAction.done,
               decoration: InputDecoration(
                 labelText: "Description",
                 alignLabelWithHint: true,
@@ -181,10 +199,11 @@ class _AdminAddPlaceScreenState extends State<AdminAddPlaceScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isNumber = false}) {
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isNumber = false, bool isLast = false}) {
     return TextField(
       controller: controller,
       keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+      textInputAction: isLast ? TextInputAction.done : TextInputAction.next,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, color: Colors.amber.shade900),

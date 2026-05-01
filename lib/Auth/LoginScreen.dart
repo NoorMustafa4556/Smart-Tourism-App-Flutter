@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../Providers/AuthProvider.dart';
-import 'HomeScreen.dart';
+import '../Screens/HomeScreen.dart';
 import 'SignUpScreen.dart';
 import 'ProfileSetupScreen.dart';
-import 'AdminDashboard.dart';
+import '../Admin/AdminDashboard.dart';
 import '../Services/NotificationService.dart';
+import '../Widgets/AuthWidgets.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -32,9 +33,21 @@ class _LoginScreenState extends State<LoginScreen> {
               padding: const EdgeInsets.all(30.0),
               child: Column(
                 children: [
-                  _buildTextField(_emailController, "Email Address", Icons.email_outlined),
+                  AuthTextField(
+                    controller: _emailController,
+                    label: "Email Address",
+                    icon: Icons.email_outlined,
+                  ),
                   SizedBox(height: 20),
-                  _buildTextField(_passwordController, "Password", Icons.lock_outline, isPassword: true),
+                  AuthTextField(
+                    controller: _passwordController,
+                    label: "Password",
+                    icon: Icons.lock_outline,
+                    isPassword: true,
+                    isObscure: _isObscure,
+                    isLastField: true,
+                    onToggleVisibility: () => setState(() => _isObscure = !_isObscure),
+                  ),
                   SizedBox(height: 10),
                   Align(
                     alignment: Alignment.centerRight,
@@ -104,21 +117,5 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false}) {
-    return TextField(
-      controller: controller,
-      obscureText: isPassword && _isObscure,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Colors.blue.shade900),
-        suffixIcon: isPassword ? IconButton(icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _isObscure = !_isObscure)) : null,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: Colors.grey.shade200)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: Colors.blue.shade900, width: 1.5)),
-      ),
-    );
-  }
 }
+
