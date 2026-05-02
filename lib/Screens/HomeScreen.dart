@@ -30,10 +30,12 @@ class _HomeScreenState extends State<HomeScreen> {
     {"name": "Historical", "icon": Icons.account_balance},
     {"name": "Nature", "icon": Icons.forest},
   ];
+  late Stream<List<PlaceModel>> _placesStream;
 
   @override
   void initState() {
     super.initState();
+    _placesStream = _db.getPlaces();
     // Initialize Notification Listeners
     NotificationService().initialize(context);
   }
@@ -89,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Expanded(
             child: StreamBuilder<List<PlaceModel>>(
-              stream: _db.getPlaces(),
+              stream: _placesStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
                 final places = snapshot.data?.where((p) {

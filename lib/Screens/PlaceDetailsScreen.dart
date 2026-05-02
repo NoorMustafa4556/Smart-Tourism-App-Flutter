@@ -23,6 +23,13 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
   String selectedCategory = 'Individual';
   HotelModel? selectedHotel;
   int stayDays = 1;
+  late Stream<List<HotelModel>> _hotelsStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _hotelsStream = DatabaseService().getSpotHotels(widget.place.id);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +93,7 @@ class _PlaceDetailsScreenState extends State<PlaceDetailsScreen> {
         Container(
           height: 180,
           child: StreamBuilder<List<HotelModel>>(
-            stream: db.getSpotHotels(widget.place.id),
+            stream: _hotelsStream,
             builder: (context, snapshot) {
               if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
               if (snapshot.data!.isEmpty) return Center(child: Text("No hotels listed for this spot.", style: TextStyle(color: Colors.grey)));

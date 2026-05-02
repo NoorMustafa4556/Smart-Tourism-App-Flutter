@@ -22,11 +22,24 @@ class AdminDashboard extends StatefulWidget {
 class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final DatabaseService _db = DatabaseService();
+  
+  late Stream<List<BookingModel>> _bookingsStream;
+  late Stream<List<PlaceModel>> _placesStream;
+  late Stream<List<HotelModel>> _hotelsStream;
+  late Stream<List<PaymentMethodModel>> _paymentsStream;
+  late Stream<Map<String, dynamic>?> _profileStream;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    
+    _bookingsStream = _db.getAllBookings();
+    _placesStream = _db.getPlaces();
+    _hotelsStream = _db.getHotels();
+    _paymentsStream = _db.getPaymentMethods();
+    _profileStream = _db.getAdminProfile();
+    
     // Initialize Notification Listeners
     NotificationService().initialize(context);
   }
@@ -54,7 +67,7 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
       ),
       drawer: Drawer(
         child: StreamBuilder<Map<String, dynamic>?>(
-          stream: _db.getAdminProfile(),
+          stream: _profileStream,
           builder: (context, snapshot) {
             String adminName = "Super Admin";
             String adminEmail = "admin@tourism.com";
@@ -133,7 +146,7 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
   // --- BOOKINGS TAB ---
   Widget _buildBookingsTab() {
     return StreamBuilder<List<BookingModel>>(
-      stream: _db.getAllBookings(),
+      stream: _bookingsStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) return Center(child: Text("Error: ${snapshot.error}", style: TextStyle(color: Colors.red)));
         if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
@@ -209,7 +222,7 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
   // --- PLACES TAB ---
   Widget _buildPlacesTab() {
     return StreamBuilder<List<PlaceModel>>(
-      stream: _db.getPlaces(),
+      stream: _placesStream,
       builder: (context, snapshot) {
         if (snapshot.hasError) return Center(child: Text("Error: ${snapshot.error}", style: TextStyle(color: Colors.red)));
         if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
@@ -254,7 +267,7 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
   // --- PAYMENTS TAB ---
   Widget _buildPaymentsTab() {
     return StreamBuilder<List<PaymentMethodModel>>(
-      stream: _db.getPaymentMethods(),
+      stream: _paymentsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
         if (!snapshot.hasData || snapshot.data!.isEmpty) return Center(child: Text("No payment methods found. Add one!"));
@@ -297,7 +310,7 @@ class _AdminDashboardState extends State<AdminDashboard> with SingleTickerProvid
   // --- HOTELS TAB ---
   Widget _buildHotelsTab() {
     return StreamBuilder<List<HotelModel>>(
-      stream: _db.getHotels(), // I should add this method to DatabaseService if it doesn't exist
+      stream: _hotelsStream, // I should add this method to DatabaseService if it doesn't exist
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) return Center(child: CircularProgressIndicator());
         final hotels = snapshot.data ?? [];
