@@ -62,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             String password = _passwordController.text.trim();
 
                             // 1. Check for Admin Credentials
-                            if (email == "admin@tourism.com" && password == "admin123") {
+                            if (email == "admin@tourism.com" && password == "Sial12345") {
                               // Save Admin FCM Token
                               await NotificationService().saveToken("admin", isAdmin: true);
                               Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => AdminDashboard()));
