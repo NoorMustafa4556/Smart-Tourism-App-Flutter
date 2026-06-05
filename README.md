@@ -120,28 +120,56 @@ lib/
 
 ---
 
-# 👋🏻 Hi, I'm Noor Mustafa
+## 👨‍💻 Developer
 
-A passionate and results-driven **Flutter Developer** from **Bahawalpur, Pakistan**, specializing in building elegant, scalable, and high-performance cross-platform mobile applications.
+### Hi, I'm Noor Mustafa 👋🏻
 
-With a strong focus on **UI/UX Excellence** and **Full-Stack Firebase Integration**, I aim to deliver "VIP-level" applications that wow users at first sight.
+A passionate **Flutter Developer** and **Django Developer** from **Bahawalpur, Pakistan**, specializing in building elegant, scalable, and high-performance cross-platform applications. With a strong understanding of UI/UX principles, state management, and API integration, I aim to deliver apps that are not only functional but also user-centric and visually compelling.
+
+**What I Do:**
+- 🧑🏻‍💻 **Flutter App Development** – Cross-platform apps for Android, iOS, and the web.
+- 🔗 **API Integration** – RESTful APIs, JWT Auth, Django REST Framework.
+- 🎨 **UI/UX Design** – Responsive, animated interfaces with modern design systems.
+- 🐍 **Django Backend** – REST APIs, custom admin dashboards, signal-based automation.
+- ⚙️ **State Management** – Provider, ChangeNotifier for clean, scalable architecture.
+
+<p align="left">
+  <img src="https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black"/>
+  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Postman-FF6C37?style=for-the-badge&logo=postman&logoColor=white"/>
+</p>
+
+**📫 Let's Connect:**
+
+<p align="left">
+  <a href="https://www.linkedin.com/in/noormustafa4556/" target="_blank">
+    <img src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg" alt="LinkedIn" height="30" width="40"/>
+  </a>
+  <a href="https://github.com/NoorMustafa4556" target="_blank">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white" alt="GitHub" height="30"/>
+  </a>
+  <a href="https://www.facebook.com/NoorMustafa4556" target="_blank">
+    <img src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/facebook.svg" alt="Facebook" height="30" width="40"/>
+  </a>
+  <a href="https://instagram.com/noormustafa4556" target="_blank">
+    <img src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/instagram.svg" alt="Instagram" height="30" width="40"/>
+  </a>
+  <a href="https://wa.me/923087655076" target="_blank">
+    <img src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/whatsapp.svg" alt="WhatsApp" height="30" width="40"/>
+  </a>
+  <a href="https://x.com/NoorMustafa4556" target="_blank">
+    <img src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/twitter.svg" alt="X / Twitter" height="30" width="40"/>
+  </a>
+</p>
+
+📍 **Location:** Bahawalpur, Punjab, Pakistan
 
 ---
 
-## 🚀 My Expertise
+> *"Learning never stops. Every app I build makes me a better developer — one widget at a time."*
 
-- 🧑🏻‍💻 **VIP Flutter UI** – Crafted with precision and modern design trends.
-- 🔗 **Firebase Expert** – Real-time databases, auth systems, and cloud functions.
-- 🎨 **User-Centric Design** – Focusing on smooth transitions and lavish aesthetics.
-- ⚙️ **State Management** – Scalable architecture using Provider.
 
-> 🎯 Explore my world of widgets: [github.com/NoorMustafa4556](https://github.com/NoorMustafa4556)
-
----
-
-- 📍 *Location:* Bahawalpur, Punjab, Pakistan
-- 📱 *WhatsApp:* [+92 308 7655076](https://wa.me/923087655076)
-
----
-
-> “Every line of code is a step towards a more beautiful digital world.”
